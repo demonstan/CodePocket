@@ -3,7 +3,7 @@ class GistSyncService {
     constructor() {
         this.apiBase = 'https://api.github.com';
         this.gistFileName = 'code-snippets-data.json';
-        this.gistDescription = 'Code Snippet Saver - Backup Data';
+        this.gistDescription = 'CodePocket - Backup Data';
     }
 
     // Get stored GitHub token
