@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Snippet Saver</title>
+    <link rel="stylesheet" href="popup.css">
+    <link rel="stylesheet" href="prism.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="title">
+                <span class="icon">
+                    <img src="icons/icon128.png" alt="Code snippets" width="24" height="24">
+                </span>
+                Code Snippets Saver
+            </h1>
+            <div class="header-actions">
+                <button id="addSnippetBtn" class="btn btn-primary" title="Add new snippet">
+                    <span class="plus">+</span>
+                </button>
+                <button id="syncBtn" class="btn btn-sync" title="Sync with GitHub Gist">
+                    <span id="syncIcon">☁️</span>
+                </button>
+                <div class="dropdown">
+                    <button id="moreActionsBtn" class="btn btn-secondary dropdown-toggle" title="More actions">
+                        ⋯
+                    </button>
+                    <div id="dropdownMenu" class="dropdown-menu hidden">
+                        <button id="autoSyncToggle" class="dropdown-item" title="Toggle auto sync">
+                            <span id="autoSyncIcon">🔄</span>
+                            <span id="autoSyncText">Auto Sync: ON</span>
+                        </button>
+                        <button id="importBtn" class="dropdown-item" title="Import snippets">
+                            📥 Import
+                        </button>
+                        <button id="exportBtn" class="dropdown-item" title="Export snippets">
+                            📤 Export
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Search Bar -->
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search snippets..." class="search-input">
+            <select id="languageFilter" class="language-filter">
+                <option value="">All Languages</option>
+                <option value="javascript">JavaScript</option>
+                <option value="python">Python</option>
+                <option value="java">Java</option>
+                <option value="cpp">C++</option>
+                <option value="css">CSS</option>
+                <option value="html">HTML</option>
+                <option value="php">PHP</option>
+                <option value="ruby">Ruby</option>
+                <option value="go">Go</option>
+                <option value="rust">Rust</option>
+                <option value="typescript">TypeScript</option>
+                <option value="sql">SQL</option>
+                <option value="bash">Bash</option>
+                <option value="json">JSON</option>
+                <option value="xml">XML</option>
+                <option value="yaml">YAML</option>
+            </select>
+        </div>
+
+        <!-- Add/Edit Snippet Form -->
+        <div id="snippetForm" class="snippet-form hidden">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="snippetTitle">Title *</label>
+                    <input type="text" id="snippetTitle" placeholder="Enter snippet title..." required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group flex-2">
+                    <label for="snippetDescription">Description</label>
+                    <input type="text" id="snippetDescription" placeholder="Brief description...">
+                </div>
+                <div class="form-group flex-1">
+                    <label for="snippetLanguage">Language *</label>
+                    <select id="snippetLanguage" required>
+                        <option value="">Select Language</option>
+                        <option value="javascript">JavaScript</option>
+                        <option value="python">Python</option>
+                        <option value="java">Java</option>
+                        <option value="cpp">C++</option>
+                        <option value="css">CSS</option>
+                        <option value="html">HTML</option>
+                        <option value="php">PHP</option>
+                        <option value="ruby">Ruby</option>
+                        <option value="go">Go</option>
+                        <option value="rust">Rust</option>
+                        <option value="typescript">TypeScript</option>
+                        <option value="sql">SQL</option>
+                        <option value="bash">Bash</option>
+                        <option value="json">JSON</option>
+                        <option value="xml">XML</option>
+                        <option value="yaml">YAML</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="snippetTags">Tags (comma-separated)</label>
+                    <input type="text" id="snippetTags" placeholder="react, hooks, state...">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="snippetCode">Code *</label>
+                    <textarea id="snippetCode" placeholder="Enter your code here..." rows="11" required></textarea>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button id="saveSnippetBtn" class="btn btn-primary">Save Snippet</button>
+                <button id="cancelBtn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+
+        <!-- Snippets List -->
+        <div id="snippetsList" class="snippets-list"></div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state hidden">
+            <div class="empty-icon">
+                <img src="icons/icon128.png" alt="Code snippets" width="64" height="64">
+            </div>
+            <h3>No snippets yet</h3>
+            <p>Start saving your code snippets by clicking the + button above</p>
+        </div>
+
+        <!-- GitHub Sync Modal -->
+        <div id="syncModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>GitHub Gist Sync</h3>
+                    <button id="closeSyncModal" class="modal-close">×</button>
+                </div>
+                <div class="modal-body">
+                    <!-- Authentication Section -->
+                    <div id="authSection">
+                        <div class="auth-info">
+                            <h4>🔐 Setup GitHub Authentication</h4>
+                            <p>To sync your snippets with GitHub Gist, you need to provide a Personal Access Token.</p>
+                            <ol>
+                                <li>Go to <a href="https://github.com/settings/tokens" target="_blank">GitHub Token Settings</a></li>
+                                <li>Click "Generate new token (classic)"</li>
+                                <li>Give it a name like "Code Snippet Saver"</li>
+                                <li>Select the <strong>gist</strong> scope</li>
+                                <li>Click "Generate token" and copy it</li>
+                            </ol>
+                        </div>
+                        <div class="form-group">
+                            <label for="githubToken">GitHub Personal Access Token:</label>
+                            <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+                        </div>
+                        <div class="form-actions">
+                            <button id="authenticateBtn" class="btn btn-primary">Authenticate</button>
+                        </div>
+                    </div>
+
+                    <!-- Sync Status Section -->
+                    <div id="syncSection" class="hidden">
+                        <div class="sync-status">
+                            <div class="status-item">
+                                <span class="status-label">Account:</span>
+                                <span id="githubUsername" class="status-value">-</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-label">Last Sync:</span>
+                                <span id="lastSyncTime" class="status-value">Never</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-label">Gist:</span>
+                                <span id="gistStatus" class="status-value">-</span>
+                            </div>
+                        </div>
+                        <div class="sync-actions">
+                            <button id="uploadBtn" class="btn btn-primary">📤 Upload to Gist</button>
+                            <button id="downloadBtn" class="btn btn-secondary">📥 Download from Gist</button>
+                            <button id="disconnectBtn" class="btn btn-danger">🔓 Disconnect</button>
+                        </div>
+                    </div>
+
+                    <!-- Sync Progress -->
+                    <div id="syncProgress" class="sync-progress hidden">
+                        <div class="progress-bar">
+                            <div class="progress-fill"></div>
+                        </div>
+                        <div class="progress-text">Syncing...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Overlay -->
+        <div id="modalOverlay" class="modal-overlay hidden"></div>
+    </div>
+
+    <!-- Hidden file input for import -->
+    <input type="file" id="fileInput" accept=".json" style="display: none;">
+
+    <!-- Scripts -->
+    <script src="prism.js"></script>
+    <script src="gist-sync.js"></script>
+    <script src="popup.js"></script>
+</body>
+</html>
