@@ -203,26 +203,52 @@ class SnippetManager {
                 // Toggle dropdown
                 moreActionsBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    dropdownMenu.classList.toggle('hidden');
+
+                    // 切换显示状态
+                    const isVisible = dropdownMenu.classList.contains('show');
+
+                    if (isVisible) {
+                        // 隐藏下拉菜单
+                        dropdownMenu.classList.remove('show');
+                        setTimeout(() => {
+                            dropdownMenu.classList.add('hidden');
+                        }, 300);
+                    } else {
+                        // 显示下拉菜单
+                        dropdownMenu.classList.remove('hidden');
+                        // 强制重排
+                        dropdownMenu.offsetHeight;
+                        // 触发渐入动画
+                        setTimeout(() => {
+                            dropdownMenu.classList.add('show');
+                        }, 10);
+                    }
                 });
 
                 // Close dropdown when clicking outside
                 document.addEventListener('click', (e) => {
                     if (!moreActionsBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
-                        dropdownMenu.classList.add('hidden');
+                        if (dropdownMenu.classList.contains('show')) {
+                            dropdownMenu.classList.remove('show');
+                            setTimeout(() => {
+                                dropdownMenu.classList.add('hidden');
+                            }, 300);
+                        }
                     }
                 });
             }
 
-            // 自动同步开关按钮
             const autoSyncToggle = document.getElementById('autoSyncToggle');
             if (autoSyncToggle) {
                 autoSyncToggle.addEventListener('click', () => {
                     this.toggleAutoSync();
                     // Close dropdown after action
                     const dropdownMenu = document.getElementById('dropdownMenu');
-                    if (dropdownMenu) {
-                        dropdownMenu.classList.add('hidden');
+                    if (dropdownMenu && dropdownMenu.classList.contains('show')) {
+                        dropdownMenu.classList.remove('show');
+                        setTimeout(() => {
+                            dropdownMenu.classList.add('hidden');
+                        }, 300);
                     }
                 });
             }
@@ -232,8 +258,11 @@ class SnippetManager {
                     this.importSnippets();
                     // Close dropdown after action
                     const dropdownMenu = document.getElementById('dropdownMenu');
-                    if (dropdownMenu) {
-                        dropdownMenu.classList.add('hidden');
+                    if (dropdownMenu && dropdownMenu.classList.contains('show')) {
+                        dropdownMenu.classList.remove('show');
+                        setTimeout(() => {
+                            dropdownMenu.classList.add('hidden');
+                        }, 300);
                     }
                 });
             }
@@ -243,8 +272,11 @@ class SnippetManager {
                     this.exportSnippets();
                     // Close dropdown after action
                     const dropdownMenu = document.getElementById('dropdownMenu');
-                    if (dropdownMenu) {
-                        dropdownMenu.classList.add('hidden');
+                    if (dropdownMenu && dropdownMenu.classList.contains('show')) {
+                        dropdownMenu.classList.remove('show');
+                        setTimeout(() => {
+                            dropdownMenu.classList.add('hidden');
+                        }, 300);
                     }
                 });
             }
@@ -529,6 +561,13 @@ class SnippetManager {
 
             await this.saveSnippetsToStorage();
             this.showNotification(`Snippet ${this.editingId ? 'updated' : 'saved'} successfully!`, 'success');
+
+            // Add success animation to save button
+            this.elements.saveBtn.classList.add('success-animation');
+            setTimeout(() => {
+                this.elements.saveBtn.classList.remove('success-animation');
+            }, 600);
+
             this.renderSnippets();
             this.hideForm();
 
@@ -764,11 +803,11 @@ class SnippetManager {
             await navigator.clipboard.writeText(text);
             const originalText = button.textContent;
             button.textContent = 'Copied!';
-            button.classList.add('copied');
+            button.classList.add('copied', 'success-copy');
 
             setTimeout(() => {
                 button.textContent = originalText;
-                button.classList.remove('copied');
+                button.classList.remove('copied', 'success-copy');
             }, 2000);
         } catch (error) {
             console.error('Failed to copy to clipboard:', error);
@@ -781,8 +820,10 @@ class SnippetManager {
             document.body.removeChild(textarea);
 
             button.textContent = 'Copied!';
+            button.classList.add('success-copy');
             setTimeout(() => {
                 button.textContent = 'Copy';
+                button.classList.remove('success-copy');
             }, 2000);
         }
     }
@@ -888,22 +929,55 @@ class SnippetManager {
 
     // GitHub Sync Modal Methods
     async showSyncModal() {
-        this.elements.syncModal.classList.remove('hidden');
+        // Show modal with loading state first
         this.elements.modalOverlay.classList.remove('hidden');
+        this.elements.syncModal.classList.remove('hidden');
 
-        // Check authentication status
-        const isAuthenticated = await this.gistSync.isAuthenticated();
+        // Trigger reflow to ensure the element is visible before adding animation class
+        this.elements.modalOverlay.offsetHeight;
+        this.elements.syncModal.offsetHeight;
 
-        if (isAuthenticated) {
-            await this.updateSyncModalAuthenticatedState();
-        } else {
+        // Add animation classes
+        this.elements.modalOverlay.classList.add('show');
+        this.elements.syncModal.classList.add('show');
+
+        // Hide all sections initially
+        this.elements.authSection.classList.add('hidden');
+        this.elements.syncSection.classList.add('hidden');
+        this.elements.syncProgress.classList.add('hidden');
+
+        try {
+            // Check authentication status
+            const isAuthenticated = await this.gistSync.isAuthenticated();
+
+            // Show loading state
+            this.showSyncProgress('Checking authentication...');
+
+            if (isAuthenticated) {
+                await this.updateSyncModalAuthenticatedState();
+
+                // Hide loading state
+                this.hideSyncProgress();
+            } else {
+                this.showSyncModalAuthSection();
+            }
+        } catch (error) {
+            console.error('Error checking authentication:', error);
             this.showSyncModalAuthSection();
         }
     }
 
     hideSyncModal() {
-        this.elements.syncModal.classList.add('hidden');
-        this.elements.modalOverlay.classList.add('hidden');
+        // Add fade out animation
+        this.elements.syncModal.classList.remove('show');
+        this.elements.modalOverlay.classList.remove('show');
+
+        // Wait for animation to complete before hiding
+        setTimeout(() => {
+            this.elements.syncModal.classList.add('hidden');
+            this.elements.modalOverlay.classList.add('hidden');
+        }, 300);
+
         this.hideSyncProgress();
     }
 
@@ -911,6 +985,10 @@ class SnippetManager {
         this.elements.authSection.classList.remove('hidden');
         this.elements.syncSection.classList.add('hidden');
         this.elements.syncProgress.classList.add('hidden');
+    }
+
+    hideSyncModalAuthSection() {
+        this.elements.authSection.classList.add('hidden');
     }
 
     async updateSyncModalAuthenticatedState() {
@@ -950,6 +1028,7 @@ class SnippetManager {
         }
 
         this.showSyncProgress('Validating token...');
+        this.hideSyncModalAuthSection();
 
         try {
             // Validate token
@@ -962,14 +1041,26 @@ class SnippetManager {
             // Store token
             await this.gistSync.setToken(token);
 
+            // Try to find and reconnect to existing Gist
+            this.showSyncProgress('Looking for existing Gists...');
+            const existingGist = await this.gistSync.findAndConnectExistingGist();
+
+            if (existingGist) {
+                console.log('Found and reconnected to existing Gist:', existingGist.id);
+                this.showNotification('Authenticated and reconnected to existing Gist!', 'success');
+            } else {
+                console.log('No existing Gist found, will create new one when uploading');
+                this.showNotification('Successfully authenticated with GitHub!', 'success');
+            }
+
             // Update UI
             await this.updateSyncModalAuthenticatedState();
             this.elements.githubToken.value = '';
 
-            this.showNotification('Successfully authenticated with GitHub!', 'success');
-
         } catch (error) {
             console.error('Authentication error:', error);
+            // show auth section again
+            this.showSyncModalAuthSection();
             this.showNotification('Authentication failed: ' + error.message, 'error');
         } finally {
             this.hideSyncProgress();
@@ -1007,6 +1098,17 @@ class SnippetManager {
         this.updateSyncButtonStatus('syncing');
 
         try {
+            // Check if we have a Gist ID, if not try to find one
+            const currentGistId = await this.gistSync.getGistId();
+            if (!currentGistId) {
+                this.showSyncProgress('Looking for existing Gists...');
+                const existingGist = await this.gistSync.findAndConnectExistingGist();
+                if (!existingGist) {
+                    throw new Error('No Gist found. Please upload your snippets first to create a Gist.');
+                }
+                console.log('Found and connected to Gist:', existingGist.id);
+            }
+
             const result = await this.gistSync.downloadSnippets();
 
             if (result.snippets.length === 0) {
@@ -1111,7 +1213,10 @@ class SnippetManager {
         try {
             // 移除现有通知
             const existing = document.querySelectorAll('.notification');
-            existing.forEach(el => el.remove());
+            existing.forEach(el => {
+                el.style.animation = 'slideOutUp 0.3s ease';
+                setTimeout(() => el.remove(), 300);
+            });
 
             const notification = document.createElement('div');
             notification.className = 'notification';
@@ -1139,9 +1244,16 @@ class SnippetManager {
                 box-shadow: 0 2px 8px rgba(0,0,0,0.2);
                 animation: slideInDown 0.3s ease;
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                transform: translateY(0);
+                opacity: 1;
             `;
 
             document.body.appendChild(notification);
+
+            // 添加弹跳效果
+            setTimeout(() => {
+                notification.style.animation = 'bounceIn 0.3s ease';
+            }, 50);
 
             // 3秒后自动移除
             setTimeout(() => {
@@ -1171,14 +1283,23 @@ class SnippetManager {
         const date = new Date(dateString);
         const now = new Date();
         const diffTime = Math.abs(now - date);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-        if (diffDays === 1) {
+        const diffMinutes = Math.floor(diffTime / (1000 * 60));
+        const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffMinutes < 1) {
+            return 'Just now';
+        } else if (diffMinutes < 60) {
+            return `${diffMinutes} minute${diffMinutes === 1 ? '' : 's'} ago`;
+        } else if (diffHours < 24) {
+            return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
+        } else if (diffDays === 0) {
             return 'Today';
-        } else if (diffDays === 2) {
+        } else if (diffDays === 1) {
             return 'Yesterday';
         } else if (diffDays <= 7) {
-            return `${diffDays - 1} days ago`;
+            return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
         } else {
             return date.toLocaleDateString();
         }

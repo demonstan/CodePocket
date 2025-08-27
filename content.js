@@ -1,8 +1,11 @@
 // Content script for Code Snippet Saver Extension
+console.log('Content script loaded on:', window.location.href);
+
 class CodeCapture {
     constructor() {
         this.selectedText = '';
         this.contextMenu = null;
+        console.log('CodeCapture initialized');
         this.init();
     }
 
@@ -16,47 +19,180 @@ class CodeCapture {
         document.addEventListener('mouseup', (e) => this.handleTextSelection(e));
         document.addEventListener('keyup', (e) => this.handleTextSelection(e));
 
-        // Listen for context menu events
-        document.addEventListener('contextmenu', (e) => this.handleContextMenu(e));
-
-        // Clean up on click elsewhere
-        document.addEventListener('click', (e) => this.cleanup(e));
-
-        // Listen for Escape key to close context menu
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                this.cleanup();
-            }
-        });
-
         // Listen for keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             // Ctrl+Shift+S or Cmd+Shift+S to save selected code
             if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'S') {
                 e.preventDefault();
+
+                // Get fresh selection when using keyboard shortcut
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    this.selectedText = selection.toString();
+                    console.log('Keyboard shortcut - fresh selection:', this.selectedText);
+                    console.log('Line count:', this.selectedText.split('\n').length);
+                }
+
                 this.captureSelectedCode();
+            }
+        });
+
+        // Listen for messages from background script
+        chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+            if (request.action === 'captureCode') {
+                // Get the selected text directly from the page selection with better preservation
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+
+                    // Method 1: Try to get text with better line preservation
+                    this.selectedText = selection.toString();
+
+                    // Method 2: If the text seems to have lost formatting, try cloneContents
+                    if (this.selectedText && this.selectedText.indexOf('\n') === -1) {
+                        const clonedContent = range.cloneContents();
+                        const tempDiv = document.createElement('div');
+                        tempDiv.appendChild(clonedContent);
+
+                        // Convert HTML back to text, preserving line breaks
+                        let textContent = tempDiv.textContent || tempDiv.innerText || '';
+
+                        // If the cloned content has more line breaks, use it
+                        if (textContent.split('\n').length > this.selectedText.split('\n').length) {
+                            this.selectedText = textContent;
+                            console.log('Using cloned content method for better line preservation');
+                        }
+                    }
+
+                    console.log('Fresh selection from page:', this.selectedText);
+                    console.log('Text length:', this.selectedText.length);
+                    console.log('Line count:', this.selectedText.split('\n').length);
+                    console.log('Raw text with escapes:', JSON.stringify(this.selectedText));
+                } else {
+                    // Fallback to the text passed from background script
+                    this.selectedText = request.selectedText;
+                    console.log('Using fallback text from context menu:', this.selectedText);
+                }
+
+                this.captureSelectedCode()
+                    .then(() => sendResponse({ success: true }))
+                    .catch((error) => sendResponse({ success: false, error: error.message }));
+                return true; // Will respond asynchronously
             }
         });
     }
 
     handleTextSelection(e) {
         const selection = window.getSelection();
-        this.selectedText = selection.toString().trim();
+        // Don't trim() here to preserve leading/trailing whitespace for code
+        this.selectedText = selection.toString();
 
-        if (this.selectedText && this.selectedText.length > 10) {
-            // Check if selected text looks like code
+        console.log('Text selected:', this.selectedText.length, 'characters');
+        console.log('Line count:', this.selectedText.split('\n').length);
+
+        // Just store the selected text for keyboard shortcut use
+        if (this.selectedText && this.selectedText.length > 5) {
             if (this.looksLikeCode(this.selectedText)) {
-                this.showQuickCaptureButton(e);
+                console.log('Code detected, available for context menu capture');
+            } else {
+                console.log('Selected text does not look like code');
             }
         } else {
-            this.hideQuickCaptureButton();
+            console.log('Selected text too short or empty');
         }
     }
 
     handleContextMenu(e) {
         if (this.selectedText && this.looksLikeCode(this.selectedText)) {
-            // Don't prevent default context menu, but prepare for our addition
+            // Add custom context menu option for code capture
             setTimeout(() => this.addContextMenuOption(e), 10);
+        }
+    }
+
+    addContextMenuOption(e) {
+        // Remove any existing custom context menu
+        this.removeCustomContextMenu();
+
+        // Create custom context menu overlay
+        const contextMenu = document.createElement('div');
+        contextMenu.id = 'code-snippet-context-menu';
+        contextMenu.className = 'code-snippet-context-menu';
+
+        const menuItem = document.createElement('div');
+        menuItem.className = 'code-snippet-menu-item';
+        menuItem.innerHTML = '💾 Save Code Snippet';
+
+        menuItem.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            this.captureSelectedCode();
+            this.removeCustomContextMenu();
+        });
+
+        contextMenu.appendChild(menuItem);
+
+        // Position the menu near the mouse cursor
+        let mouseX = e.clientX || 100;
+        let mouseY = e.clientY || 100;
+
+        contextMenu.style.cssText = `
+            position: fixed !important;
+            top: ${mouseY + 5}px !important;
+            left: ${mouseX + 5}px !important;
+            background: white !important;
+            border: 1px solid #ccc !important;
+            border-radius: 4px !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+            z-index: 2147483647 !important;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+            font-size: 14px !important;
+            min-width: 150px !important;
+            padding: 4px 0 !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        `;
+
+        menuItem.style.cssText = `
+            padding: 8px 16px !important;
+            cursor: pointer !important;
+            color: #333 !important;
+            border: none !important;
+            background: transparent !important;
+            width: 100% !important;
+            text-align: left !important;
+            font-size: 14px !important;
+            line-height: 1.4 !important;
+            display: block !important;
+        `;
+
+        // Add hover effect
+        menuItem.addEventListener('mouseenter', () => {
+            menuItem.style.setProperty('background-color', '#f0f0f0', 'important');
+        });
+
+        menuItem.addEventListener('mouseleave', () => {
+            menuItem.style.setProperty('background-color', 'transparent', 'important');
+        });
+
+        document.body.appendChild(contextMenu);
+        this.contextMenu = contextMenu;
+
+        // Auto-remove context menu after 5 seconds or on outside click
+        setTimeout(() => this.removeCustomContextMenu(), 5000);
+
+        console.log('Custom context menu added');
+    }
+
+    removeCustomContextMenu() {
+        if (this.contextMenu) {
+            this.contextMenu.remove();
+            this.contextMenu = null;
+        }
+
+        const existing = document.getElementById('code-snippet-context-menu');
+        if (existing) {
+            existing.remove();
         }
     }
 
@@ -72,62 +208,24 @@ class CodeCapture {
             /^\s*[a-zA-Z_$][a-zA-Z0-9_$]*\s*[(:=]/m, // Function/variable declarations
         ];
 
-        return codeIndicators.some(pattern => pattern.test(text)) ||
-               text.split('\n').length > 2; // Multi-line text
-    }
+        const hasCodeIndicator = codeIndicators.some(pattern => pattern.test(text));
+        const isMultiLine = text.split('\n').length > 1;
 
-    showQuickCaptureButton(e) {
-        this.hideQuickCaptureButton();
-
-        const button = document.createElement('div');
-        button.id = 'code-snippet-capture-btn';
-        button.innerHTML = '💾 Save Snippet';
-        button.style.cssText = `
-            position: absolute;
-            top: ${e.pageY - 40}px;
-            left: ${e.pageX}px;
-            background: #667eea;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            z-index: 10000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            transition: all 0.2s ease;
-            border: none;
-            user-select: none;
-        `;
-
-        button.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.captureSelectedCode();
+        console.log('Code detection:', {
+            text: text.substring(0, 50) + '...',
+            hasCodeIndicator,
+            isMultiLine,
+            result: hasCodeIndicator || isMultiLine
         });
 
-        button.addEventListener('mouseenter', () => {
-            button.style.background = '#5a6fd8';
-            button.style.transform = 'translateY(-2px)';
-        });
-
-        button.addEventListener('mouseleave', () => {
-            button.style.background = '#667eea';
-            button.style.transform = 'translateY(0)';
-        });
-
-        document.body.appendChild(button);
-
-        // Auto-hide after 3 seconds
-        setTimeout(() => this.hideQuickCaptureButton(), 3000);
+        return hasCodeIndicator || isMultiLine; // Multi-line text or code patterns
     }
 
-    hideQuickCaptureButton() {
-        const existingButton = document.getElementById('code-snippet-capture-btn');
-        if (existingButton) {
-            existingButton.remove();
-        }
-    }
+    // Removed showQuickCaptureButton method - using Chrome native context menu
+
+    // Removed setupButtonProtection method - no longer needed
+
+    // Removed hideQuickCaptureButton method - no longer needed
 
     async captureSelectedCode() {
         if (!this.selectedText) {
@@ -135,38 +233,42 @@ class CodeCapture {
             return;
         }
 
+        console.log('Capturing selected code:');
+        console.log('Raw text:', JSON.stringify(this.selectedText));
+        console.log('Length:', this.selectedText.length);
+        console.log('Lines:', this.selectedText.split('\n').length);
+
         const detectedLanguage = this.detectLanguage(this.selectedText);
         const pageTitle = document.title;
         const pageUrl = window.location.href;
 
-        // Create a snippet object
+        // Create a snippet object - preserve the original text without trimming
         const snippet = {
             id: Date.now().toString(),
             title: this.generateTitle(pageTitle, detectedLanguage),
             description: `Captured from: ${pageUrl}`,
             language: detectedLanguage,
-            code: this.selectedText,
+            code: this.selectedText, // Keep original text with all whitespace
             tags: ['web-capture', this.getDomainTag()],
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
 
+        console.log('Snippet to save:', snippet);
+
         try {
-            // Get existing snippets
-            const result = await new Promise((resolve) => {
-                chrome.storage.local.get(['snippets'], resolve);
+            // Send snippet to background script for saving
+            const response = await chrome.runtime.sendMessage({
+                action: 'saveSnippet',
+                snippet: snippet
             });
 
-            const snippets = result.snippets || [];
-            snippets.unshift(snippet);
-
-            // Save updated snippets
-            await new Promise((resolve) => {
-                chrome.storage.local.set({ snippets }, resolve);
-            });
-
-            this.showNotification('Code snippet saved successfully!', 'success');
-            this.cleanup();
+            if (response.success) {
+                console.log('Snippet saved successfully:', snippet);
+                this.showNotification('Code snippet saved successfully!', 'success');
+            } else {
+                throw new Error(response.error || 'Failed to save snippet');
+            }
 
         } catch (error) {
             console.error('Error saving snippet:', error);
@@ -220,9 +322,12 @@ class CodeCapture {
     }
 
     showNotification(message, type = 'info') {
-        // Remove existing notifications
+        // Remove existing notifications immediately
         const existing = document.querySelectorAll('.code-snippet-notification');
-        existing.forEach(el => el.remove());
+        existing.forEach(el => {
+            el.style.transition = 'none';
+            el.remove();
+        });
 
         const notification = document.createElement('div');
         notification.className = 'code-snippet-notification';
@@ -249,30 +354,34 @@ class CodeCapture {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             max-width: 300px;
             word-wrap: break-word;
-            animation: slideInRight 0.3s ease;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+            visibility: visible;
         `;
 
         document.body.appendChild(notification);
 
+        // Trigger slide in animation
+        requestAnimationFrame(() => {
+            notification.style.opacity = '1';
+            notification.style.transform = 'translateX(0)';
+        });
+
         // Auto-remove after 3 seconds
         setTimeout(() => {
             if (notification.parentNode) {
-                notification.style.animation = 'slideOutRight 0.3s ease';
-                setTimeout(() => notification.remove(), 300);
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+
+                // Remove after transition completes
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 300);
             }
         }, 3000);
-    }
-
-    cleanup(e) {
-        if (e && e.target && e.target.id === 'code-snippet-capture-btn') {
-            return; // Don't cleanup if clicking the capture button
-        }
-
-        this.hideQuickCaptureButton();
-        if (this.contextMenu) {
-            this.contextMenu.remove();
-            this.contextMenu = null;
-        }
     }
 
     injectStyles() {

@@ -5,7 +5,9 @@
   "description": "Save, organize, and manage your code snippets with syntax highlighting and Github Gist cloud sync.",
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "scripting",
+    "contextMenus"
   ],
   "host_permissions": [
     "https://api.github.com/*",
@@ -19,7 +21,7 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Code Snippet Saver",
+    "default_title": "CodePocket - Code Snippet Saver",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",
@@ -47,5 +49,8 @@
         "<all_urls>"
       ]
     }
-  ]
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
 }

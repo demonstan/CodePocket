@@ -35,8 +35,13 @@ class GistSyncService {
 
     // Check if user is authenticated
     async isAuthenticated() {
-        const token = await this.getToken();
-        return !!token;
+        try {
+            const token = await this.getToken();
+            return !!token;
+        } catch (error) {
+            console.error('Error checking authentication:', error);
+            return false;
+        }
     }
 
     // Validate GitHub token by making a test API call
@@ -281,5 +286,28 @@ class GistSyncService {
             lastSync: lastSync,
             canSync: isAuth && true
         };
+    }
+
+    // Find and reconnect to existing Gist
+    async findAndConnectExistingGist() {
+        try {
+            const snippetGists = await this.findSnippetGists();
+
+            if (snippetGists.length > 0) {
+                // Use the most recently updated Gist
+                const latestGist = snippetGists.sort((a, b) =>
+                    new Date(b.updated_at) - new Date(a.updated_at)
+                )[0];
+
+                await this.setGistId(latestGist.id);
+                console.log('Reconnected to existing Gist:', latestGist.id);
+                return latestGist;
+            }
+
+            return null;
+        } catch (error) {
+            console.error('Error finding existing Gist:', error);
+            return null;
+        }
     }
 }
