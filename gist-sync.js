@@ -16,13 +16,23 @@ class GistSyncService {
                 keys.forEach(key => {
                     const value = localStorage.getItem(key);
                     if (value !== null) {
-                        result[key] = JSON.parse(value);
+                        try {
+                            result[key] = JSON.parse(value);
+                        } catch (error) {
+                            console.error(`Failed to parse localStorage value for key "${key}":`, error);
+                            result[key] = null;
+                        }
                     }
                 });
             } else {
                 const value = localStorage.getItem(keys);
                 if (value !== null) {
-                    result[keys] = JSON.parse(value);
+                    try {
+                        result[keys] = JSON.parse(value);
+                    } catch (error) {
+                        console.error(`Failed to parse localStorage value for key "${keys}":`, error);
+                        result[keys] = null;
+                    }
                 }
             }
             return result;
@@ -35,7 +45,12 @@ class GistSyncService {
     async _setStorage(items) {
         if (this.useLocalStorage) {
             Object.keys(items).forEach(key => {
-                localStorage.setItem(key, JSON.stringify(items[key]));
+                try {
+                    localStorage.setItem(key, JSON.stringify(items[key]));
+                } catch (error) {
+                    console.error(`Failed to save to localStorage for key "${key}":`, error);
+                    throw error;
+                }
             });
         } else {
             await chrome.storage.local.set(items);
