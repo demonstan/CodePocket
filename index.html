@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CodePocket - A powerful Chrome extension for saving, organizing, and managing code snippets with syntax highlighting and GitHub Gist sync.">
+    <title>CodePocket - Code Snippet Saver Chrome Extension</title>
+    <link rel="stylesheet" href="landing.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">
+                    <img src="icons/icon128.png" alt="CodePocket" width="32" height="32">
+                    <span>CodePocket</span>
+                </div>
+                <div class="nav-links">
+                    <a href="#features">Features</a>
+                    <a href="#install">Install</a>
+                    <a href="#usage">Usage</a>
+                    <a href="https://github.com/demonstan/CodePocket" target="_blank" rel="noopener">GitHub</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>CodePocket</h1>
+                <p class="tagline">Save, organize, and manage your code snippets with ease</p>
+                <p class="description">A powerful Chrome extension for developers featuring syntax highlighting, GitHub Gist sync, and smart organization.</p>
+                <div class="cta-buttons">
+                    <a href="#install" class="btn btn-primary">Get Started</a>
+                    <a href="https://github.com/demonstan/CodePocket" class="btn btn-secondary" target="_blank" rel="noopener">View on GitHub</a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="extension-preview">
+                    <div class="preview-header">
+                        <span class="preview-dot"></span>
+                        <span class="preview-dot"></span>
+                        <span class="preview-dot"></span>
+                    </div>
+                    <div class="preview-content">
+                        <div class="code-line"><span class="keyword">const</span> snippet = <span class="string">"Your Code Here"</span>;</div>
+                        <div class="code-line"><span class="keyword">function</span> <span class="function">saveSnippet</span>() {</div>
+                        <div class="code-line">  <span class="comment">// Save and organize effortlessly</span></div>
+                        <div class="code-line">}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section id="features" class="features">
+        <div class="container">
+            <h2>Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">💾</div>
+                    <h3>Save Snippets</h3>
+                    <p>Store code with title, description, language, and tags for easy organization.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3>Syntax Highlighting</h3>
+                    <p>Support for 15+ programming languages with beautiful Prism.js highlighting.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Smart Search</h3>
+                    <p>Find snippets by title, description, code content, or tags instantly.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">☁️</div>
+                    <h3>GitHub Gist Sync</h3>
+                    <p>Cloud synchronization using GitHub Gist for backup and cross-device access.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📤</div>
+                    <h3>Export/Import</h3>
+                    <p>Backup and restore your snippets as JSON files with ease.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">✏️</div>
+                    <h3>Full CRUD</h3>
+                    <p>Create, read, update, and delete operations for complete snippet management.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="languages">
+        <div class="container">
+            <h2>Supported Languages</h2>
+            <div class="language-tags">
+                <span class="language-tag">JavaScript</span>
+                <span class="language-tag">TypeScript</span>
+                <span class="language-tag">Python</span>
+                <span class="language-tag">Java</span>
+                <span class="language-tag">C++</span>
+                <span class="language-tag">CSS</span>
+                <span class="language-tag">HTML</span>
+                <span class="language-tag">PHP</span>
+                <span class="language-tag">Ruby</span>
+                <span class="language-tag">Go</span>
+                <span class="language-tag">Rust</span>
+                <span class="language-tag">SQL</span>
+                <span class="language-tag">Bash</span>
+                <span class="language-tag">JSON</span>
+                <span class="language-tag">XML</span>
+                <span class="language-tag">YAML</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="install" class="installation">
+        <div class="container">
+            <h2>Installation</h2>
+            <div class="install-steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Download the Extension</h3>
+                        <p>Clone or download the repository from GitHub.</p>
+                        <code>git clone https://github.com/demonstan/CodePocket.git</code>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Load in Chrome</h3>
+                        <p>Go to <code>chrome://extensions/</code>, enable Developer mode, and click "Load unpacked".</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Start Using</h3>
+                        <p>Click the CodePocket icon in your Chrome toolbar to start saving snippets!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="usage" class="usage">
+        <div class="container">
+            <h2>How to Use</h2>
+            <div class="usage-grid">
+                <div class="usage-item">
+                    <h3>📝 Add Snippets</h3>
+                    <p>Click the "+" button, fill in the details (title, language, code), and save. Press Ctrl+Enter for quick saving.</p>
+                </div>
+                <div class="usage-item">
+                    <h3>🔍 Search & Filter</h3>
+                    <p>Use the search bar to find snippets by content or tags. Filter by programming language for quick access.</p>
+                </div>
+                <div class="usage-item">
+                    <h3>✏️ Edit & Delete</h3>
+                    <p>Click the edit icon to modify snippets or the × button to delete. One-click copy to clipboard available.</p>
+                </div>
+                <div class="usage-item">
+                    <h3>☁️ Sync with GitHub</h3>
+                    <p>Connect your GitHub account to sync snippets across devices. Automatic backup to private Gists.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <div class="container">
+            <h2>Ready to organize your code?</h2>
+            <p>Get started with CodePocket today and never lose a snippet again.</p>
+            <a href="https://github.com/demonstan/CodePocket" class="btn btn-primary" target="_blank" rel="noopener">Download Now</a>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <img src="icons/icon128.png" alt="CodePocket" width="24" height="24">
+                        <span>CodePocket</span>
+                    </div>
+                    <p>Code Snippet Saver for Chrome</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Links</h4>
+                    <ul>
+                        <li><a href="https://github.com/demonstan/CodePocket" target="_blank" rel="noopener">GitHub Repository</a></li>
+                        <li><a href="https://github.com/demonstan/CodePocket/issues" target="_blank" rel="noopener">Report Issues</a></li>
+                        <li><a href="https://github.com/demonstan/CodePocket/blob/main/LICENSE" target="_blank" rel="noopener">License</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="https://github.com/demonstan/CodePocket/blob/main/readme.md" target="_blank" rel="noopener">Documentation</a></li>
+                        <li><a href="https://github.com/demonstan/CodePocket#contributing" target="_blank" rel="noopener">Contributing</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 CodePocket. Licensed under Apache-2.0 License.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
