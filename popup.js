@@ -127,7 +127,7 @@ class SnippetManager {
             await chrome.storage.local.remove(['test']);
             console.log('Storage permissions: OK');
         } catch (error) {
-            console.log('Chrome storage not available, using localStorage:', error.message);
+            console.log('Chrome storage not available, falling back to localStorage:', error.message);
 
             // 尝试使用localStorage作为后备
             this.useLocalStorageFallback = true;
