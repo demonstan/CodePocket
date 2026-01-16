@@ -4,33 +4,81 @@ class GistSyncService {
         this.apiBase = 'https://api.github.com';
         this.gistFileName = 'code-snippets-data.json';
         this.gistDescription = 'CodePocket - Backup Data';
+        // Detect if Chrome storage is available
+        this.useLocalStorage = typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.local;
+    }
+
+    // Storage abstraction - get value
+    async _getStorage(keys) {
+        if (this.useLocalStorage) {
+            const result = {};
+            if (Array.isArray(keys)) {
+                keys.forEach(key => {
+                    const value = localStorage.getItem(key);
+                    if (value !== null) {
+                        result[key] = JSON.parse(value);
+                    }
+                });
+            } else {
+                const value = localStorage.getItem(keys);
+                if (value !== null) {
+                    result[keys] = JSON.parse(value);
+                }
+            }
+            return result;
+        } else {
+            return await chrome.storage.local.get(keys);
+        }
+    }
+
+    // Storage abstraction - set value
+    async _setStorage(items) {
+        if (this.useLocalStorage) {
+            Object.keys(items).forEach(key => {
+                localStorage.setItem(key, JSON.stringify(items[key]));
+            });
+        } else {
+            await chrome.storage.local.set(items);
+        }
+    }
+
+    // Storage abstraction - remove value
+    async _removeStorage(keys) {
+        if (this.useLocalStorage) {
+            const keysArray = Array.isArray(keys) ? keys : [keys];
+            keysArray.forEach(key => {
+                localStorage.removeItem(key);
+            });
+        } else {
+            await chrome.storage.local.remove(keys);
+        }
     }
 
     // Get stored GitHub token
     async getToken() {
-        const result = await chrome.storage.local.get(['githubToken']);
+        const result = await this._getStorage(['githubToken']);
         return result.githubToken;
     }
 
     // Store GitHub token
     async setToken(token) {
-        await chrome.storage.local.set({ githubToken: token });
+        await this._setStorage({ githubToken: token });
     }
 
     // Get stored Gist ID
     async getGistId() {
-        const result = await chrome.storage.local.get(['gistId']);
+        const result = await this._getStorage(['gistId']);
         return result.gistId;
     }
 
     // Store Gist ID
     async setGistId(gistId) {
-        await chrome.storage.local.set({ gistId: gistId });
+        await this._setStorage({ gistId: gistId });
     }
 
     // Remove authentication data
     async clearAuth() {
-        await chrome.storage.local.remove(['githubToken', 'gistId', 'lastSyncTime']);
+        await this._removeStorage(['githubToken', 'gistId', 'lastSyncTime']);
     }
 
     // Check if user is authenticated
@@ -263,14 +311,14 @@ class GistSyncService {
 
     // Update last sync time
     async updateLastSyncTime() {
-        await chrome.storage.local.set({
+        await this._setStorage({
             lastSyncTime: new Date().toISOString()
         });
     }
 
     // Get last sync time
     async getLastSyncTime() {
-        const result = await chrome.storage.local.get(['lastSyncTime']);
+        const result = await this._getStorage(['lastSyncTime']);
         return result.lastSyncTime;
     }
 

@@ -32,7 +32,8 @@
                 <p class="tagline">Save, organize, and manage your code snippets with ease</p>
                 <p class="description">A powerful Chrome extension for developers featuring syntax highlighting for 16 languages, GitHub Gist sync, and smart organization.</p>
                 <div class="cta-buttons">
-                    <a href="#install" class="btn btn-primary">Get Started</a>
+                    <a href="popup.html" class="btn btn-primary">Use Web App</a>
+                    <a href="#install" class="btn btn-secondary">Install Extension</a>
                     <a href="https://github.com/demonstan/CodePocket" class="btn btn-secondary" target="_blank" rel="noopener">View on GitHub</a>
                 </div>
             </div>
@@ -118,28 +119,28 @@
 
     <section id="install" class="installation">
         <div class="container">
-            <h2>Installation</h2>
+            <h2>Get Started</h2>
             <div class="install-steps">
                 <div class="step">
-                    <div class="step-number">1</div>
+                    <div class="step-number">🌐</div>
                     <div class="step-content">
-                        <h3>Download the Extension</h3>
-                        <p>Clone or download the repository from GitHub.</p>
-                        <code>git clone https://github.com/demonstan/CodePocket.git</code>
+                        <h3>Use as Web App</h3>
+                        <p>No installation needed! Click the button below to use CodePocket directly in your browser.</p>
+                        <a href="popup.html" class="btn btn-primary" style="display: inline-block; margin-top: 10px;">Launch Web App</a>
+                        <p style="margin-top: 10px; font-size: 0.9em; color: #666;">Uses localStorage to save your snippets in your browser.</p>
                     </div>
                 </div>
                 <div class="step">
-                    <div class="step-number">2</div>
+                    <div class="step-number">🔧</div>
                     <div class="step-content">
-                        <h3>Load in Chrome</h3>
-                        <p>Go to <code>chrome://extensions/</code>, enable Developer mode, and click "Load unpacked".</p>
-                    </div>
-                </div>
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <h3>Start Using</h3>
-                        <p>Click the CodePocket icon in your Chrome toolbar to start saving snippets!</p>
+                        <h3>Install as Extension</h3>
+                        <p>For Chrome extension features like context menu integration:</p>
+                        <ol style="text-align: left; margin: 10px 0;">
+                            <li>Clone: <code>git clone https://github.com/demonstan/CodePocket.git</code></li>
+                            <li>Go to <code>chrome://extensions/</code></li>
+                            <li>Enable "Developer mode" and click "Load unpacked"</li>
+                            <li>Select the CodePocket folder</li>
+                        </ol>
                     </div>
                 </div>
             </div>

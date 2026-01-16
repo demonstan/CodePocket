@@ -1,4 +1,20 @@
 
+// Detect if running in web mode (not as Chrome extension popup)
+function detectWebMode() {
+    // Check if we're in a Chrome extension context
+    const isExtension = typeof chrome !== 'undefined' && 
+                       chrome.storage && 
+                       chrome.storage.local &&
+                       window.location.protocol === 'chrome-extension:';
+    
+    if (!isExtension) {
+        document.body.classList.add('web-mode');
+        console.log('Running in web mode');
+    } else {
+        console.log('Running as Chrome extension');
+    }
+}
+
 // Initialize Prism and wait for it to load
 function initializePrism() {
     return new Promise((resolve) => {
@@ -22,6 +38,13 @@ function initializePrism() {
             resolve();
         }, 3000);
     });
+}
+
+// Detect web mode on page load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', detectWebMode);
+} else {
+    detectWebMode();
 }
 
 class SnippetManager {
@@ -104,23 +127,15 @@ class SnippetManager {
             await chrome.storage.local.remove(['test']);
             console.log('Storage permissions: OK');
         } catch (error) {
-            console.error('Storage permissions error:', error);
-
-            // 提供更详细的错误信息和解决方案
-            let errorMessage = 'Storage permission error. ';
-            if (typeof chrome === 'undefined') {
-                errorMessage += 'Extension context not available. Please reload the extension.';
-            } else if (!chrome.storage) {
-                errorMessage += 'Storage API not available. Please check manifest permissions.';
-            } else {
-                errorMessage += 'Please check extension permissions and try again.';
-            }
-
-            this.showNotification(errorMessage, 'error');
+            console.log('Chrome storage not available, using localStorage:', error.message);
 
             // 尝试使用localStorage作为后备
             this.useLocalStorageFallback = true;
-            console.log('Falling back to localStorage');
+            
+            // 在Web环境下显示友好提示，而不是错误
+            if (typeof chrome === 'undefined' || !chrome.storage) {
+                console.log('Running in web mode - using localStorage for data persistence');
+            }
         }
     }
 

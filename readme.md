@@ -1,6 +1,6 @@
-# CodePocket - Code Snippet Saver - Chrome Extension
+# CodePocket - Code Snippet Saver - Chrome Extension & Web App
 
-A powerful Chrome extension for saving, organizing, and managing code snippets with syntax highlighting and advanced features.
+A powerful tool for saving, organizing, and managing code snippets with syntax highlighting and advanced features. Available both as a Chrome extension and as a standalone web application.
 
 ## ✨ Features
 
@@ -16,6 +16,25 @@ A powerful Chrome extension for saving, organizing, and managing code snippets w
 - **GitHub Gist Sync**: Cloud synchronization using GitHub Gist (requires Personal Access Token)
 - **Edit & Delete**: Full CRUD operations for managing your snippets
 - **Date Tracking**: Automatic creation and modification timestamps
+
+## 🌐 Use as Web App (NEW!)
+
+You can now use CodePocket directly in your browser without installing any extension!
+
+### Quick Start
+1. Visit the [CodePocket Web App](https://demonstan.github.io/CodePocket/popup.html)
+2. Start saving and organizing your code snippets immediately
+3. Your data is stored locally in your browser using localStorage
+
+### Features in Web Mode
+- ✅ Full snippet management (create, read, update, delete)
+- ✅ Syntax highlighting for 15+ languages
+- ✅ Search and filter functionality
+- ✅ Export/Import JSON data
+- ✅ GitHub Gist sync
+- ✅ LocalStorage for data persistence
+- ✅ Works offline once loaded
+- ✅ Mobile responsive
 
 ## 🚀 Installation
 
